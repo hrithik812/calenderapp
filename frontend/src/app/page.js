@@ -22,19 +22,23 @@ export default function Home() {
   const [bookings, setBookings] = useState([]);
   const [message, setMessage] = useState("");
   const [loading, setLoading] = useState(false);
-
+  const [allBookings, setAllBookings] = useState([]);
+  
   const authHeader = useMemo(
     () => (token ? { Authorization: `Bearer ${token}` } : {}),
     [token]
   );
 
   const loadProfileAndBookings = async (jwt) => {
-    const [mePayload, bookingsPayload] = await Promise.all([
+    const [mePayload, bookingsPayload, allBookingsPayload] = await Promise.all([
       apiRequest("/auth/me", { headers: { Authorization: `Bearer ${jwt}` } }),
       apiRequest("/bookings/mine", { headers: { Authorization: `Bearer ${jwt}` } }),
+      apiRequest("/bookings/all", { headers: { Authorization: `Bearer ${jwt}` } }),
     ]);
     setUser(mePayload.user);
     setBookings(bookingsPayload.bookings || []);
+    setAllBookings(allBookingsPayload.bookings || []);
+    console.log("All Bookings", allBookingsPayload);
   };
 
   const loadSlots = async (serviceId, date) => {
@@ -42,6 +46,7 @@ export default function Home() {
     const payload = await apiRequest(
       `/bookings/slots?serviceId=${serviceId}&date=${date}`
     );
+    console.log("Payload", payload);
     setSlots(payload.slots || []);
     setSelectedSlot("");
   };
@@ -181,6 +186,9 @@ export default function Home() {
     }
   };
 
+  console.log("Bookings", bookings);
+  
+
   const onLogout = () => {
     window.localStorage.removeItem("bookingToken");
     setToken("");
@@ -189,6 +197,7 @@ export default function Home() {
     setMessage("Logged out");
   };
 
+  console.log("Slots", slots);
   return (
     <main className="mx-auto flex w-full max-w-5xl flex-col gap-6 p-6">
       <h1 className="text-3xl font-bold">Koalendar Booking</h1>
@@ -327,6 +336,29 @@ export default function Home() {
                       Cancel booking
                     </button>
                   ) : null}
+                </article>
+              ))}
+            </div>
+          </section>
+          <section className="rounded-xl border border-zinc-200 p-4">
+            <h2 className="mb-3 text-xl font-semibold">All Bookings</h2>
+            {allBookings.length === 0 ? <p>No bookings yet.</p> : null}
+            <div className="grid gap-3">
+              {allBookings.map((booking) => (
+                <article className="rounded border border-zinc-200 p-3" key={booking.id}>
+                  <p className="font-medium">{booking.Service?.name}</p>
+                  <p className="text-sm">{new Date(booking.startTime).toLocaleString()}</p>
+                  <p className="text-sm capitalize">Status: {booking.status}</p>
+                  <p className="text-sm capitalize">User: {booking.User?.name}</p>
+                  {/* {booking.status === "confirmed" ? (
+                    <button
+                      className="mt-2 rounded bg-red-600 px-3 py-1 text-sm text-white"
+                      onClick={() => onCancelBooking(booking.id)}
+                      type="button"
+                    >
+                      Cancel booking
+                    </button>
+                  ) : null} */}
                 </article>
               ))}
             </div>
