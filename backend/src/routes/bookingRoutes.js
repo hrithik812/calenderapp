@@ -12,7 +12,7 @@ const router = express.Router();
 
 router.get("/slots", getSlots);
 router.get("/mine", requireAuth, myBookings);
-router.get("/", requireAuth, requireAdmin, allBookings);
+router.get("/all", requireAuth, requireAdmin, allBookings);
 router.post("/",requireAuth, createBooking);
 router.patch("/:id/cancel", requireAuth, cancelBooking);
 

@@ -1,19 +1,44 @@
 const { Op } = require("sequelize");
 const { Booking } = require("../models");
 
-const WORK_START_HOUR = 9;
-const WORK_END_HOUR = 18;
+const WORK_START_HOUR = 9; // 9:00 AM
+const WORK_END_HOUR = 17; // 5:00 PM
 const SLOT_INTERVAL_MINUTES = 30;
 
-const hasConflict = (start, end, existingBookings) =>
-  existingBookings.some(
+/**
+ * Check if a booking overlaps with existing bookings.
+ */
+const hasConflict = (start, end, existingBookings) => {
+  return existingBookings.some(
     (booking) =>
-      start < new Date(booking.endTime) && end > new Date(booking.startTime)
+      start < new Date(booking.endTime) &&
+      end > new Date(booking.startTime)
   );
+};
 
+/**
+ * Check if a booking falls within working hours.
+ */
+const isWithinWorkingHours = (startTime, endTime) => {
+  const workStart = new Date(startTime);
+  workStart.setHours(WORK_START_HOUR, 0, 0, 0);
+
+  const workEnd = new Date(startTime);
+  workEnd.setHours(WORK_END_HOUR, 0, 0, 0);
+
+  return startTime >= workStart && endTime <= workEnd;
+};
+
+/**
+ * Get all available slots for a given date.
+ *
+ * @param {string} dateString - Format: YYYY-MM-DD
+ * @param {number} durationMinutes
+ */
 const getAvailableSlots = async (dateString, durationMinutes) => {
-  const dayStart = new Date(`${dateString}T00:00:00.000Z`);
-  const dayEnd = new Date(`${dateString}T23:59:59.999Z`);
+  // Local day start & end (NO UTC)
+  const dayStart = new Date(`${dateString}T00:00:00`);
+  const dayEnd = new Date(`${dateString}T23:59:59.999`);
 
   const existingBookings = await Booking.findAll({
     where: {
@@ -27,14 +52,20 @@ const getAvailableSlots = async (dateString, durationMinutes) => {
   });
 
   const slots = [];
-  const current = new Date(`${dateString}T${String(WORK_START_HOUR).padStart(2, "0")}:00:00.000Z`);
-  const workEnd = new Date(`${dateString}T${String(WORK_END_HOUR).padStart(2, "0")}:00:00.000Z`);
+
+  const current = new Date(`${dateString}T09:00:00`);
+  const workEnd = new Date(`${dateString}T17:00:00`);
 
   while (current < workEnd) {
     const slotStart = new Date(current);
-    const slotEnd = new Date(slotStart.getTime() + durationMinutes * 60000);
+    const slotEnd = new Date(
+      slotStart.getTime() + durationMinutes * 60 * 1000
+    );
 
-    if (slotEnd <= workEnd && !hasConflict(slotStart, slotEnd, existingBookings)) {
+    if (
+      isWithinWorkingHours(slotStart, slotEnd) &&
+      !hasConflict(slotStart, slotEnd, existingBookings)
+    ) {
       slots.push(slotStart.toISOString());
     }
 
@@ -44,4 +75,7 @@ const getAvailableSlots = async (dateString, durationMinutes) => {
   return slots;
 };
 
-module.exports = { getAvailableSlots };
+module.exports = {
+  getAvailableSlots,
+  isWithinWorkingHours,
+};
