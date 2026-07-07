@@ -12,7 +12,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata = {
-  title: "Koalendar Booking App",
+  title: "Calender Booking App",
   description: "Calendar booking app built with Next.js and Express",
 };
 
