@@ -1,36 +1,63 @@
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 const { User } = require("../models");
+const { isAllowedEmail, allowedEmailMessage } = require("../utils/allowedEmail");
 
 const signToken = (user) =>
   jwt.sign({ userId: user.id, role: user.role }, process.env.JWT_SECRET, {
     expiresIn: "7d",
   });
 
-const register = async (req, res) => {
-  try {
-    const { name, email, password } = req.body;
-    if (!name || !email || !password) {
-      return res.status(400).json({ message: "Name, email and password are required" });
+  const register = async (req, res) => {
+    try {
+      const { name, email, password } = req.body;
+  
+      if (!name || !email || !password) {
+        return res.status(400).json({
+          message: "Name, email and password are required",
+        });
+      }
+  
+      // Allow only approved email addresses/domains
+      if (!isAllowedEmail(email)) {
+        return res.status(403).json({
+          message: allowedEmailMessage,
+        });
+      }
+  
+      const exists = await User.findOne({ where: { email } });
+      if (exists) {
+        return res.status(409).json({
+          message: "Email already in use",
+        });
+      }
+  
+      const passwordHash = await bcrypt.hash(password, 10);
+  
+      const user = await User.create({
+        name,
+        email,
+        passwordHash,
+      });
+  
+      const token = signToken(user);
+  
+      return res.status(201).json({
+        token,
+        user: {
+          id: user.id,
+          name: user.name,
+          email: user.email,
+          role: user.role,
+        },
+      });
+    } catch (error) {
+      console.error(error);
+      return res.status(500).json({
+        message: "Failed to register",
+      });
     }
-
-    const exists = await User.findOne({ where: { email } });
-    if (exists) {
-      return res.status(409).json({ message: "Email already in use" });
-    }
-
-    const passwordHash = await bcrypt.hash(password, 10);
-    const user = await User.create({ name, email, passwordHash });
-    const token = signToken(user);
-
-    return res.status(201).json({
-      token,
-      user: { id: user.id, name: user.name, email: user.email, role: user.role },
-    });
-  } catch (error) {
-    return res.status(500).json({ message: "Failed to register" });
-  }
-};
+  };
 
 const login = async (req, res) => {
   try {

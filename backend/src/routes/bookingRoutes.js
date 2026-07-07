@@ -12,8 +12,8 @@ const router = express.Router();
 
 router.get("/slots", getSlots);
 router.get("/mine", requireAuth, myBookings);
-router.get("/all", requireAuth, requireAdmin, allBookings);
+router.get("/all", requireAuth,allBookings);
 router.post("/",requireAuth, createBooking);
-router.patch("/:id/cancel", requireAuth, cancelBooking);
+router.patch("/:id/cancel",requireAuth ,cancelBooking);
 
 module.exports = router;

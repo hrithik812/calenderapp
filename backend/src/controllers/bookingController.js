@@ -53,6 +53,8 @@ const createBooking = async (req, res) => {
 
     const slotDate = new Date(startTime);
 
+
+
     const endTime = new Date(
       slotDate.getTime() + service.durationMinutes * 60000
     );
@@ -97,6 +99,7 @@ const createBooking = async (req, res) => {
 };
 
 const myBookings = async (req, res) => {
+  
   const bookings = await Booking.findAll({
     where: {
       userId: req.user.id,
@@ -110,9 +113,17 @@ const myBookings = async (req, res) => {
 };
 
 const allBookings = async (_req, res) => {
+  const { Op } = require("sequelize");
+
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  
   const bookings = await Booking.findAll({
     where: {
       status: "confirmed",
+      startTime: {
+        [Op.gte]: today,
+      },
     },
     include: [
       {
@@ -126,6 +137,7 @@ const allBookings = async (_req, res) => {
     order: [["startTime", "ASC"]],
   });
 
+
   const bookingsWithUserName = bookings.map((booking) => {
     const plain = booking.get({ plain: true });
     return {
@@ -133,14 +145,18 @@ const allBookings = async (_req, res) => {
       userName: plain.User?.name ?? null,
     };
   });
-  console.log("bookingsWithUserName", bookingsWithUserName);
   
   return res.json({ bookings: bookingsWithUserName });
 };
 
 const cancelBooking = async (req, res) => {
-  const booking = await Booking.findByPk(req.params.id);
 
+  
+
+  const booking = await Booking.findByPk(req.params.id);
+  
+  console.log(booking);
+  
   if (!booking) {
     return res.status(404).json({
       message: "Booking not found",

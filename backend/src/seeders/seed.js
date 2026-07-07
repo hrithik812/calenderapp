@@ -7,9 +7,9 @@ const seed = async () => {
     await sequelize.authenticate();
     await sequelize.sync({ alter: true });
 
-    const adminPassword = await bcrypt.hash("admin123", 10);
+    const adminPassword = await bcrypt.hash("Shanta@2026", 15);
     await User.findOrCreate({
-      where: { email: "admin@koalendar.local" },
+      where: { email: "admin@shanta-aml.com" },
       defaults: {
         name: "Admin User",
         passwordHash: adminPassword,
@@ -19,14 +19,13 @@ const seed = async () => {
 
     const defaults = [
       {
-        name: "30-Minute Consultation",
-        description: "Intro call to discuss your needs and next steps.",
+        name: "30-Minute Meeting",
+        description: "30 Minute Meeting with Shanta",
         durationMinutes: 30,
-        price: 25.0,
       },
       {
-        name: "60-Minute Strategy Session",
-        description: "Deep-dive planning session with action items.",
+        name: "60 Minute Meeting",
+        description: "60 Minute Meeting with Shanta",
         durationMinutes: 60,
         price: 65.0,
       },
