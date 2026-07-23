@@ -24,6 +24,8 @@ const getSlots = async (req, res) => {
 
     const slots = await getAvailableSlots(date, service.durationMinutes);
 
+    console.log("Slots---",slots);
+    
     return res.json({ slots });
   } catch (error) {
     console.error(error);
@@ -99,11 +101,17 @@ const createBooking = async (req, res) => {
 };
 
 const myBookings = async (req, res) => {
-  
+  const { Op } = require("sequelize");
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+
   const bookings = await Booking.findAll({
     where: {
       userId: req.user.id,
-      status: "confirmed"
+      status: "confirmed",
+      startTime: {
+        [Op.gte]: today,
+      },
     },
     include: [{ model: Service }],
     order: [["startTime", "ASC"]],

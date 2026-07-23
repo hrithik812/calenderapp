@@ -55,6 +55,7 @@ const getAvailableSlots = async (dateString, durationMinutes) => {
 
   const current = new Date(`${dateString}T09:00:00`);
   const workEnd = new Date(`${dateString}T17:00:00`);
+  const now = new Date();
 
   while (current < workEnd) {
     const slotStart = new Date(current);
@@ -63,6 +64,7 @@ const getAvailableSlots = async (dateString, durationMinutes) => {
     );
 
     if (
+      slotStart >= now &&
       isWithinWorkingHours(slotStart, slotEnd) &&
       !hasConflict(slotStart, slotEnd, existingBookings)
     ) {

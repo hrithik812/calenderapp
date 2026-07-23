@@ -2,7 +2,6 @@ const jwt = require("jsonwebtoken");
 const { User } = require("../models");
 
 const requireAuth = async (req, res, next) => {
-  console.log("ASAAAA");
   
   try {
     const token = req.headers.authorization?.split(" ")[1];
