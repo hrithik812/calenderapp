@@ -38,7 +38,6 @@ export default function Home() {
   const [loading, setLoading] = useState(false);
   const [allBookings, setAllBookings] = useState([]);
   const [showPassword, setShowPassword] = useState(false);
-  
   const authHeader = useMemo(
     () => (token ? { Authorization: `Bearer ${token}` } : {}),
     [token]
@@ -164,11 +163,10 @@ export default function Home() {
         body: JSON.stringify({
           serviceId: Number(selectedService),
           startTime: selectedSlot,
-          notes,
+          notes:notes
         }),
       });
 
-      setNotes("");
       await loadSlots(selectedService, selectedDate);
       await refreshBookings(token);
       setMessage("Booking created");
@@ -205,6 +203,7 @@ export default function Home() {
     setUser(null);
     setBookings([]);
     setAllBookings([]);
+    setNotes("");
     setMessage("Logged out");
   };
 
@@ -298,6 +297,14 @@ export default function Home() {
           <section className="rounded-xl border border-zinc-200 p-4">
             <h2 className="mb-3 text-xl font-semibold">Create Booking</h2>
             <form className="grid gap-3 md:grid-cols-2" onSubmit={onCreateBooking}>
+
+                <input
+                className="rounded border p-2"
+                placeholder="Meeting Description"
+                value={notes}
+                onChange={(e) => setNotes(e.target.value)}
+                required
+              />
               <select
                 className="rounded border p-2"
                 value={selectedService}
@@ -321,7 +328,7 @@ export default function Home() {
               />
 
               <select
-                className="rounded border p-2 md:col-span-2"
+                className="rounded border p-2"
                 value={selectedSlot}
                 onChange={(e) => setSelectedSlot(e.target.value)}
                 required
@@ -329,18 +336,11 @@ export default function Home() {
                 <option value="">Select available slot</option>
                 {slots.map((slot) => (
                   <option key={slot} value={slot}>
-                    {new Date(slot).toLocaleString()}
+                    {new Date(slot).toLocaleString("en-GB")}
                   </option>
                 ))}
               </select>
 
-              <textarea
-                className="rounded border p-2 md:col-span-2"
-                placeholder="Optional notes"
-                value={notes}
-                onChange={(e) => setNotes(e.target.value)}
-                rows={3}
-              />
               <button className="rounded bg-black px-4 py-2 text-white md:col-span-2" disabled={loading} type="submit">
                 {loading ? "Saving..." : "Book now"}
               </button>
@@ -353,6 +353,7 @@ export default function Home() {
             <div className="grid gap-3">
               {bookings.map((booking) => (
                 <article className="rounded border border-zinc-200 p-3" key={booking.id}>
+                  <p className="font-medium">{booking.notes}</p>
                   <p className="text-sm">
                   {new Date(booking.startTime).toLocaleString("en-GB", {
     day: "2-digit",
@@ -389,6 +390,7 @@ export default function Home() {
             <div className="grid gap-3">
               {allBookings.map((booking) => (
                 <article className="rounded border border-zinc-200 p-3" key={booking.id}>
+                  <p className="font-medium">{booking?.notes}</p>
                   <p className="text-sm">
                   {new Date(booking.startTime).toLocaleString("en-GB", {
     day: "2-digit",
